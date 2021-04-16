@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Calendar</title>
+
+		<style>
+			div {outline: 0px solid red;}
+
+			.calendarContainer
+			{
+				width: 350px;
+				height: 30px;
+				font-size: 12px;
+				font-family: arial;
+			}
+
+			.hide 
+			{
+				overflow: hidden;
+			}
+
+			.show 
+			{
+				overflow: visible;
+			}
+
+			.calendarContainer .top
+			{
+				width: 100%;
+				height: 30px;
+			}
+
+			.calendarContainer .bottom
+			{
+				width: 100%;
+				height: 200px;
+				border: 1px solid rgba(200, 200, 200, 1);
+				border-radius: 5px;
+				padding: 2px 0 2px 0;
+				background-color: rgba(250, 250, 250, 1);
+			}
+
+			.calendarContainer input[type=text]
+			{
+				width: 310px;
+				height: 20px;
+				border-radius: 5px;
+				display: inline-block;
+				float: left;
+			}
+
+			.calendarContainer .button
+			{
+				width: 23px;
+				height: 23px;
+				border: 1px solid rgba(200, 200, 200, 1);
+				border-radius: 5px;
+				text-align: center;
+				cursor: pointer;
+				float: left;
+				background-color: rgba(255, 255, 255, 1);
+				color: rgba(0, 0, 0, 1);
+				font-size: 14px;
+			}
+
+			.calendarContainer .button:hover
+			{
+				background-color: rgba(200, 200, 200, 1);
+			}
+
+			.calendarContainer select
+			{
+				width: 100px;
+				height: 24px;
+				border-radius: 5px;
+				display: inline-block;
+				float: left;
+				font-size: 1.6em;
+			}
+
+			.calendarContainer .lblYear
+			{
+				width: 80px;
+				height: 24px;
+				text-align: center;
+				float: left;
+				font-size: 1.6em;
+			}
+
+			.calendarContainer .lblYear
+			{
+				width: 80px;
+				height: 24px;
+				text-align: center;
+				float: left;
+				font-size: 1.6em;
+			}
+
+			.daysContainer
+			{
+				width: 100%;
+				height: 150px;
+				margin-top: 10px;
+				text-align: center;
+				float: left;
+			}
+
+			.daysContainer .day, .daysContainer .date
+			{
+				width: 47px;
+				height: 20px;
+				text-align: center;
+				float: left;
+			}
+
+			.daysContainer .header
+			{
+				font-weight:bold;
+			}
+
+			.daysContainer .date
+			{
+				padding-top: 3px;
+				color: rgba(100, 100, 100, 1);
+				font-weight: bold;
+				cursor: pointer;
+			}
+
+			.daysContainer .notCurrentMonth
+			{
+				font-weight: normal;
+			}
+
+			.daysContainer .weekend
+			{
+				color: rgba(255, 0, 0, 1);
+			}
+
+			.daysContainer .date:hover
+			{
+				outline: 1px solid rgba(100, 100, 100, 1);
+			}
+
+			.daysContainer .selected
+			{
+				outline: 1px solid  rgba(0, 0, 0, 1);
+			}
+
+			.spaceleft
+			{
+				margin-left: 2px;
+			}
+
+			.spaceleft_large
+			{
+				margin-left: 5px;
+			}
+		</style>
+
+		<script>
+			var calendar = 
+			{
+				container: null,
+				selectedDate: null,
+				textbox: undefined,
+				hiddenTextbox: undefined,
+				btnDisplay: undefined,
+				monthPicker: undefined,
+				datePickers: undefined,
+				daysContainer: undefined,
+				days: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+				months: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+				initialize: function(id)
+				{
+					this.selectedDate = new Date();
+					this.container = document.getElementById(id);
+					this.container.classList.add("calendarContainer");
+					this.container.classList.add("hide");
+
+					var top = document.createElement("div");
+					top.classList.add("top");
+
+					var bottom = document.createElement("div");
+					bottom.classList.add("bottom");
+
+					this.container.appendChild(top);
+					this.container.appendChild(bottom);
+
+					var textbox = document.createElement("input");
+					textbox.type = "text";
+					textbox.readOnly = true;
+					textbox.id = "txt_" + id;
+					top.appendChild(textbox);
+
+					var btnDisplay = document.createElement("div");
+					btnDisplay.classList.add("button");
+					btnDisplay.classList.add("spaceleft");
+					btnDisplay.id = "btndisplay_" + id;
+					btnDisplay.innerHTML = "&#9660;";
+					btnDisplay.onclick = function() { calendar.display(id) };
+					top.appendChild(btnDisplay);
+
+					var btnMonthDec = document.createElement("div");
+					btnMonthDec.classList.add("button");
+					btnMonthDec.classList.add("spaceleft");
+					btnMonthDec.innerHTML = "&#9664;";
+					btnMonthDec.onclick = function() { calendar.setCalendarDate(id, null, calendar.selectedDate.getMonth() + 1 - 1, null);calendar.showDate(); };
+					bottom.appendChild(btnMonthDec);
+
+					var monthPicker = document.createElement("select");
+					monthPicker.classList.add("spaceleft");
+					monthPicker.id = "monthpicker_" + id;
+
+					for (var i = 0; i < this.months.length; i++)
+					{
+						var option = document.createElement("option");
+						option.value = i + 1;
+						option.innerHTML = this.months[i];
+						monthPicker.appendChild(option);
+					}
+						
+					monthPicker.onchange = function() { calendar.setCalendarDate(id, null, null, null);calendar.showDate(); };
+					bottom.appendChild(monthPicker);
+
+					var btnMonthInc = document.createElement("div");
+					btnMonthInc.classList.add("button");
+					btnMonthInc.classList.add("spaceleft");
+					btnMonthInc.innerHTML = "&#9654;";
+					btnMonthInc.onclick = function() { calendar.setCalendarDate(id, null, calendar.selectedDate.getMonth() + 1 + 1, null);calendar.showDate(); };
+					bottom.appendChild(btnMonthInc);
+
+					var btnYearDecTen = document.createElement("div");
+					btnYearDecTen.classList.add("button");
+					btnYearDecTen.classList.add("spaceleft_large");
+					btnYearDecTen.innerHTML = "&#9665;";
+					btnYearDecTen.onclick = function() { calendar.setCalendarDate(id, null, null, calendar.selectedDate.getFullYear() - 10);calendar.showDate(); };
+					bottom.appendChild(btnYearDecTen);
+
+					var btnYearDec = document.createElement("div");
+					btnYearDec.classList.add("button");
+					btnYearDec.classList.add("spaceleft");
+					btnYearDec.innerHTML = "&#9664;";
+					btnYearDec.onclick = function() { calendar.setCalendarDate(id, null, null, calendar.selectedDate.getFullYear() - 1);calendar.showDate(); };
+					bottom.appendChild(btnYearDec);
+
+					var lblYear = document.createElement("div");
+					lblYear.classList.add("lblYear");
+					lblYear.classList.add("spaceleft");
+					lblYear.id = "lblyear_" + id;
+					lblYear.innerHTML = this.selectedDate.getFullYear();
+					bottom.appendChild(lblYear);
+
+					var btnYearInc = document.createElement("div");
+					btnYearInc.classList.add("button");
+					btnYearInc.classList.add("spaceleft");
+					btnYearInc.innerHTML = "&#9654;";
+					btnYearInc.onclick = function() { calendar.setCalendarDate(id, null, null, calendar.selectedDate.getFullYear() + 1);calendar.showDate(); };
+					bottom.appendChild(btnYearInc);
+
+					var btnYearIncTen = document.createElement("div");
+					btnYearIncTen.classList.add("button");
+					btnYearIncTen.classList.add("spaceleft");
+					btnYearIncTen.innerHTML = "&#9655;";
+					btnYearIncTen.onclick = function() { calendar.setCalendarDate(id, null, null, calendar.selectedDate.getFullYear() + 10);calendar.showDate(); };
+					bottom.appendChild(btnYearIncTen);
+
+					var daysContainer = document.createElement("div");
+					daysContainer.classList.add("daysContainer");
+					daysContainer.id = "dayscontainer_" + id;
+					bottom.appendChild(daysContainer);
+
+					var hiddenTextbox = document.createElement("input");
+					hiddenTextbox.type = "text";
+					hiddenTextbox.id = "hidtxt_" + id;
+					hiddenTextbox.name = id;
+					bottom.appendChild(hiddenTextbox);
+
+					this.setProperties(id);
+					this.setCalendarDate(id, this.selectedDate.getDate(), this.selectedDate.getMonth() + 1, this.selectedDate.getFullYear());
+				},
+				setProperties: function(id)
+				{
+					this.container = document.getElementById(id);
+					this.textbox = document.getElementById("txt_" + id);
+					this.hiddenTextbox = document.getElementById("hidtxt_" + id);
+					this.monthPicker = document.getElementById("monthpicker_" + id); 
+					this.lblYear = document.getElementById("lblyear_" + id); 
+					this.daysContainer = document.getElementById("dayscontainer_" + id);
+				},
+				display: function(id)
+				{
+					this.setProperties(id);
+					var show = this.container.classList.contains("hide");
+
+					if (show)
+					{
+						//set properties
+						//show
+						this.container.classList.remove("hide");
+						this.container.classList.add("show");
+					}
+					else
+					{
+						//hide
+						this.container.classList.remove("show");
+						this.container.classList.add("hide");
+					}
+				},
+				setMonthDisplay: function(id, month, year)
+				{
+					this.monthPicker.value = month;
+					this.daysContainer.innerHTML = "";
+
+					for (var i = 0; i < this.days.length; i++)
+					{
+						var dayHeader = document.createElement("div");
+						dayHeader.classList.add("day");
+						dayHeader.classList.add("header");
+						dayHeader.classList.add("spaceleft");
+
+						if (i == 0 || i == 6) dayHeader.classList.add("weekend");
+
+						dayHeader.innerHTML = this.days[i];
+
+						this.daysContainer.append(dayHeader);						
+					}
+
+					var firstDate = new Date(year, month - 1, 1);
+					var firstDay = firstDate.getDay();
+
+					if (firstDay > 0)
+					{
+						var tempDate = new Date(year, month - 1, 1);
+						tempDate.setDate(firstDate.getDate() - firstDay - 1);
+
+						for (var i = 0; i < firstDay; i++) {
+							tempDate.setDate(tempDate.getDate() + 1);
+
+							this.daysContainer.appendChild(calendar.generateDayBox(id, tempDate, false));
+						}
+					}
+
+					var tempDate = new Date(year, month - 1, 1);
+
+					while (tempDate.getMonth() == firstDate.getMonth()) {
+						this.daysContainer.appendChild(calendar.generateDayBox(id, tempDate, true));
+
+						tempDate.setDate(tempDate.getDate() + 1);
+					}
+
+					//check last day vs saturday
+					if (tempDate.getDay() != 0)
+					{
+						this.daysContainer.appendChild(calendar.generateDayBox(id, tempDate, false));
+
+						while (tempDate.getDay() < 6) {
+							tempDate.setDate(tempDate.getDate() + 1);
+
+							this.daysContainer.appendChild(calendar.generateDayBox(id, tempDate, false));
+						}
+					}
+				},
+				setCalendarDate: function(id, day, month, year)
+				{
+					var monthVal = month;
+					var yearVal = year;
+					var dayVal = day;
+
+					if (day == null)
+					{
+						dayVal = this.selectedDate.getDate();
+					}
+
+					if (year == null)
+					{
+						yearVal = this.selectedDate.getFullYear();
+					}
+
+					if (month == null)
+					{
+						monthVal = this.monthPicker.value;
+					} 
+					else
+					{
+						if (month == 13)
+						{
+							monthVal = 1;
+							yearVal++;
+						}
+
+						if (month == 0)
+						{
+							monthVal = 12;
+							yearVal--;
+						}
+					}
+
+					var tryDay = dayVal;
+					var tryDate = new Date(yearVal, monthVal - 1, tryDay);
+
+					while(tryDate.getMonth() != monthVal - 1)
+					{
+						tryDay = tryDay - 1; 
+						tryDate = new Date(yearVal, monthVal - 1, tryDay);
+					}
+
+					this.selectedDate = new Date(yearVal, monthVal - 1, tryDay);
+					this.lblYear.innerHTML = yearVal;
+					this.hiddenTextbox.value = yearVal + "-" + (this.selectedDate.getMonth() + 1) + "-" + this.selectedDate.getDate();
+
+					this.setMonthDisplay(id, monthVal, yearVal);
+				},
+				showDate: function()
+				{
+					this.textbox.value = this.selectedDate.getDate() + " " + this.months[this.selectedDate.getMonth()] + " " + this.selectedDate.getFullYear();
+				},
+				generateDayBox: function(id, date, isCurrentMonth)
+				{
+					var dayBox = document.createElement("div");
+					dayBox.classList.add("date");
+					if (!isCurrentMonth) dayBox.classList.add("notCurrentMonth");
+					dayBox.classList.add("spaceleft");
+					dayBox.dataset.day = date.getDate();
+					dayBox.dataset.month = date.getMonth() + 1;
+					dayBox.dataset.year = date.getFullYear();
+
+					if (date.getDay() == 0 || date.getDay() == 6) dayBox.classList.add("weekend");
+					if (date.getDate() == this.selectedDate.getDate() && date.getMonth() == this.selectedDate.getMonth()) dayBox.classList.add("selected");
+
+					dayBox.innerHTML = date.getDate();
+					dayBox.onclick = function(e) { calendar.setCalendarDate(id, e.target.dataset["day"], e.target.dataset["month"], e.target.dataset["year"]); calendar.showDate();};
+
+					return dayBox;
+				}
+			}
+		</script>
+	</head>
+
+	<body>
+		<div id="cal1"></div>
+
+		<script>
+			calendar.initialize("cal1");
+		</script>
+	</body>
+</html>
