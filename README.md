@@ -1,2 +1,2 @@
-# calendar-widget
-JavaScript-based calendar widget got HTML forms
+# calendar-widget (in progress)
+*TODO: test with multiple instances*
