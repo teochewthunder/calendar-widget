@@ -4,8 +4,6 @@
 		<title>Calendar</title>
 
 		<style>
-			div {outline: 0px solid red;}
-
 			.calendarContainer
 			{
 				width: 350px;
@@ -13,16 +11,12 @@
 				font-size: 12px;
 				font-family: arial;
 				display: inline-block;
+				outline: 0px solid blue;
 			}
 
 			.hide 
 			{
 				overflow: hidden;
-			}
-
-			.show 
-			{
-				overflow: visible;
 			}
 
 			.calendarContainer .top
@@ -75,15 +69,6 @@
 				height: 24px;
 				border-radius: 5px;
 				display: inline-block;
-				float: left;
-				font-size: 1.6em;
-			}
-
-			.calendarContainer .lblYear
-			{
-				width: 80px;
-				height: 24px;
-				text-align: center;
 				float: left;
 				font-size: 1.6em;
 			}
@@ -219,7 +204,7 @@
 						option.innerHTML = this.months[i];
 						monthPicker.appendChild(option);
 					}
-						
+
 					monthPicker.onchange = function() { calendar.setCalendarDate(id, null, null, null);calendar.showDate(); };
 					bottom.appendChild(monthPicker);
 
@@ -307,7 +292,6 @@
 
 						this.container.classList.remove("hide");
 						this.container.classList.add("show");
-						this.setProperties(id);
 					}
 					else
 					{
@@ -342,7 +326,8 @@
 						var tempDate = new Date(year, month - 1, 1);
 						tempDate.setDate(firstDate.getDate() - firstDay - 1);
 
-						for (var i = 0; i < firstDay; i++) {
+						for (var i = 0; i < firstDay; i++) 
+						{
 							tempDate.setDate(tempDate.getDate() + 1);
 
 							this.daysContainer.appendChild(calendar.generateDayBox(id, tempDate, false));
@@ -351,13 +336,13 @@
 
 					var tempDate = new Date(year, month - 1, 1);
 
-					while (tempDate.getMonth() == firstDate.getMonth()) {
+					while (tempDate.getMonth() == firstDate.getMonth()) 
+					{
 						this.daysContainer.appendChild(calendar.generateDayBox(id, tempDate, true));
 
 						tempDate.setDate(tempDate.getDate() + 1);
 					}
 
-					//check last day vs saturday
 					if (tempDate.getDay() != 0)
 					{
 						this.daysContainer.appendChild(calendar.generateDayBox(id, tempDate, false));
@@ -446,9 +431,9 @@
 	</head>
 
 	<body>
-		<div id="cal1" style="position:relative;z-index:1000"></div>
+		<span id="cal1" style="position:relative;z-index:1000"></span>
 		<br />
-		<div id="cal2" style="position:relative;z-index:500"></div>
+		<span id="cal2" style="position:relative;z-index:500"></span>
 
 		<script>
 			calendar.initialize("cal1");
